@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>أذكار المساء - تتبع التقدم</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header style="background: #fffbe6; border-radius: 18px; box-shadow: 0 4px 24px #e0c97f55, 0 2px 8px #e0c97f33; border: 2.5px solid #e0c97f; margin: 1.2rem auto 2.2rem auto; max-width: 700px; padding: 1.2rem 1.5rem;">
+    <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; position: relative;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 60px; justify-content: center;">
+        <button id="darkmode-toggle" aria-label="تبديل الوضع الليلي" style="width: 54px; height: 32px; background: #e0c97f; border: none; border-radius: 16px; position: relative; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: flex-start; padding: 0; overflow: hidden; box-shadow: 0 2px 8px #e0c97f33;">
+          <span id="darkmode-emoji-sun" style="font-size:1.25rem; position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: transparent; transition: opacity 0.2s, z-index 0.2s; z-index:2; pointer-events:none; opacity: 1;">☀️</span>
+          <span id="darkmode-emoji-moon" style="font-size:1.25rem; position: absolute; right: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: transparent; transition: opacity 0.2s, z-index 0.2s; z-index:2; pointer-events:none; opacity: 0;">🌙</span>
+          <span id="darkmode-knob" style="display: block; width: 26px; height: 26px; background: #fff; border-radius: 50%; position: absolute; left: 3px; top: 3px; box-shadow: 0 1px 4px #a67c2e33; transition: left 0.2s;"></span>
+        </button>
+      </div>
+      <h1 style="margin: 0; text-align: center; flex: 1; font-size: 2.1rem; color: #a67c2e; text-shadow: 0 2px 12px #e0c97f77; letter-spacing: 1.5px; font-family: 'Amiri', serif;">تطبيق الأذكار</h1>
+      <button id="profile-slider-btn" aria-label="Open profile" style="background: none; border: none; cursor: pointer; padding: 0.5rem; display: flex; flex-direction: column; gap: 5px; justify-content: center; align-items: center;">
+        <span style="display: block; width: 28px; height: 4px; background: #a67c2e;"></span>
+        <span style="display: block; width: 28px; height: 4px; background: #a67c2e;"></span>
+        <span style="display: block; width: 28px; height: 4px; background: #a67c2e;"></span>
+      </button>
+      <aside id="profile-sidebar" style="position: fixed; top: 0; left: -260px; width: 250px; height: 100vh; background: rgba(255,255,255,0.98); box-shadow: 2px 0 16px #e0c97f33; border-right: 2px solid #e0c97f; z-index: 1000; transition: left 0.35s cubic-bezier(.77,0,.18,1); padding: 2rem 1rem; display: flex; flex-direction: column;">
+        <h3 style="margin-top: 0; font-family:'Amiri', serif; font-size: 1.3rem; color: #a67c2e;">الملف الشخصي</h3>
+        <!-- Profile sidebar content (if any) -->
+        <button id="close-profile-sidebar" style="margin-top: auto; background: #e0c97f; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; cursor: pointer;">إغلاق</button>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="evening-adhkar-container" style="max-width: 600px; margin: 1.5rem auto; padding: 1rem; background: rgba(255,255,255,0.9); border-radius: 12px; border: 2px solid #e0c97f; box-shadow: 0 2px 8px #e0c97f22; position: relative; min-height: 420px;">
+      <h2 style="text-align:center; color:#a67c2e; font-family:'Amiri', serif;">أذكار المساء</h2>
+      <div id="evening-adhkar-list" style="margin: 1.5rem 0;"></div>
+      <div id="evening-adhkar-controls" style="text-align: center; margin-bottom: 1.2rem; min-height: 48px; display: flex; justify-content: center; align-items: center; gap: 1rem; position: absolute; left: 0; right: 0; bottom: 80px; margin-left: auto; margin-right: auto; z-index: 2;">
+        <button id="evening-prev-btn" style="padding: 0.4rem 1.5rem; min-width: 110px; background: #e0c97f; color: #fff; border-radius: 6px; border: none; font-family: 'Amiri', serif; font-size: 1.1rem;"> → السابق</button>
+        <button id="evening-next-btn" style="padding: 0.4rem 1.5rem; min-width: 110px; background: #e0c97f; color: #fff; border-radius: 6px; border: none; font-family: 'Amiri', serif; font-size: 1.1rem;">التالي ←</button>
+      </div>
+      <div id="evening-progress-bar" style="background: #e0c97f44; height: 8px; width: 70%; max-width: 320px; margin: 1.5rem auto 0.5rem auto; border-radius: 3px; overflow: hidden; position: absolute; left: 0; right: 0; bottom: 32px;">
+        <div id="evening-progress-fill" style="background: #43b66e; height: 100%; width: 0%; transition: width 0.3s;"></div>
+      </div>
+      <div id="evening-progress-text" style="text-align:center; font-size: 1rem; color: #43b66e; font-family: 'Amiri', serif; margin-bottom: 0.3rem; position: absolute; left: 0; right: 0; bottom: 8px; margin-left: auto; margin-right: auto;"></div>
+    </section>
+  </main>
+
+  <script>
+// أذكار المساء
+const eveningAdhkar = [
+  "اللّهـمَّ أَنْتَ رَبِّي لا إلهَ إلاّ أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لا يَغْفِرُ الذُّنُوبَ إِلا أَنْتَ.",
+  "اللّهُ لا إِلَهَ إِلا هُوَ الْحَيُّ الْقَيُّومُ، لا تَأْخُذُهُ سِنَةٌ وَلا نَوْمٌ، لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ... (آية الكرسي)",
+  "قُلْ هُوَ اللَّهُ أَحَدٌ ... (سورة الإخلاص)",
+  "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ... (سورة الفلق)",
+  "قُلْ أَعُوذُ بِرَبِّ النَّاسِ ... (سورة الناس)",
+  "اللّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ.",
+  "اللّهُمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ ... (دعاء سيد الاستغفار)",
+  "اللّهُمَّ إِنِّي أَمْسَيْتُ أُشْهِدُكَ، وَأُشْهِدُ حَمَلَةَ عَرْشِكَ ... (شهادة التوحيد)",
+  "اللّهُمَّ مَا أَمْسَى بِي مِنْ نِعْمَةٍ أَوْ بِأَحَدٍ مِنْ خَلْقِكَ ... (الحمد والشكر)",
+  "اللّهُمَّ عَافِنِي فِي بَدَنِي، اللّهُمَّ عَافِنِي فِي سَمْعِي، اللّهُمَّ عَافِنِي فِي بَصَرِي، لا إِلَهَ إِلا أَنْتَ.",
+  "اللّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْكُفْرِ وَالْفَقْرِ، وَأَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، لا إِلَهَ إِلا أَنْتَ.",
+  "اللّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي.",
+  "اللّهُمَّ اسْتُرْ عَوْرَاتِي وَآمِنْ رَوْعَاتِي.",
+  "اللّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ وَمِنْ خَلْفِي وَعَنْ يَمِينِي وَعَنْ شِمَالِي وَمِنْ فَوْقِي وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي.",
+  "اللّهُمَّ عَالِمَ الْغَيْبِ وَالشَّهَادَةِ فَاطِرَ السَّمَاوَاتِ وَالْأَرْضِ ... (دعاء الحفظ)",
+  "اللّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الْهَمِّ وَالْحَزَنِ ... (دعاء الكرب)",
+  "اللّهُمَّ أَصْلِحْ لِي دِينِي الَّذِي هُوَ عِصْمَةُ أَمْرِي ... (دعاء الإصلاح)",
+  "اللّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ زَوَالِ نِعْمَتِكَ ... (دعاء زوال النعمة)",
+  "رَضِيتُ بِاللّهِ رَبًّا وَبِالإِسْلاَمِ دِينًا وَبِمُحَمَّدٍ صَلَّى اللّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا."
+];
+
+const adhkarListDiv = document.getElementById('evening-adhkar-list');
+const progressText = document.getElementById('evening-progress-text');
+const progressFill = document.getElementById('evening-progress-fill');
+const prevBtn = document.getElementById('evening-prev-btn');
+const nextBtn = document.getElementById('evening-next-btn');
+let currentAdhkar = 0;
+
+function renderEveningAdhkarSlider() {
+  if (!adhkarListDiv) return;
+  adhkarListDiv.innerHTML = `<div class="morning-adhkar-item">${eveningAdhkar[currentAdhkar]}</div>`;
+  if (progressText) {
+    progressText.textContent = `${currentAdhkar + 1} / ${eveningAdhkar.length}`;
+    progressText.style.display = '';
+  }
+  if (progressFill) {
+    const percent = ((currentAdhkar + 1) / eveningAdhkar.length) * 100;
+    progressFill.style.width = percent.toFixed(0) + '%';
+    progressFill.style.display = '';
+  }
+  if (prevBtn) prevBtn.disabled = (currentAdhkar === 0);
+  if (nextBtn) nextBtn.disabled = (currentAdhkar === eveningAdhkar.length - 1);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderEveningAdhkarSlider();
+  if (prevBtn) {
+    prevBtn.onclick = () => {
+      if (currentAdhkar > 0) {
+        currentAdhkar--;
+        renderEveningAdhkarSlider();
+      }
+    };
+  }
+  if (nextBtn) {
+    nextBtn.onclick = () => {
+      if (currentAdhkar < eveningAdhkar.length - 1) {
+        currentAdhkar++;
+        renderEveningAdhkarSlider();
+      }
+    };
+  }
+});
+  </script>
+  <script src="js/common.js"></script>
+</body>
+</html>
