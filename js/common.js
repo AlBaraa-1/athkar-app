@@ -2,35 +2,6 @@
 (function() {
   "use strict";
 
-  /*** Profile sidebar toggle logic ***/
-  const profileBtn = document.getElementById('profile-slider-btn');
-  const sidebar = document.getElementById('profile-sidebar');
-  const closeSidebarBtn = document.getElementById('close-profile-sidebar');
-  let sidebarOpen = false;
-  if (profileBtn && sidebar && closeSidebarBtn) {
-    profileBtn.onclick = function(e) {
-      sidebar.style.left = '0';
-      sidebarOpen = true;
-      e.stopPropagation();
-    };
-    closeSidebarBtn.onclick = function(e) {
-      sidebar.style.left = '-260px';
-      sidebarOpen = false;
-      e.stopPropagation();
-    };
-    // Click outside sidebar closes it
-    document.addEventListener('click', function(e) {
-      if (sidebarOpen && !sidebar.contains(e.target) && e.target !== profileBtn) {
-        sidebar.style.left = '-260px';
-        sidebarOpen = false;
-      }
-    });
-    // Prevent clicks inside sidebar from closing it
-    sidebar.addEventListener('click', function(e) {
-      e.stopPropagation();
-    });
-  }
-
   /*** Dark mode toggle logic ***/
   const darkToggleBtn = document.getElementById('darkmode-toggle');
   const darkKnob = document.getElementById('darkmode-knob');
@@ -60,6 +31,11 @@
   if (darkToggleBtn) {
     darkToggleBtn.onclick = function() {
       setDarkMode(!darkOn);
+      // Hide the profile sidebar if open
+      if (sidebar && sidebarOpen) {
+        sidebar.style.left = '-260px';
+        sidebarOpen = false;
+      }
     };
   }
   // Initialize in light mode by default
@@ -131,6 +107,15 @@
         let bearing = calculateQiblaDirection(lat, lon);
         if (bearing < 0) bearing += 360; // normalize to 0-360
         qiblaBearing = bearing;
+        // Display Qibla direction as cardinal letter and angle if element exists
+        const bearingDisplay = document.getElementById('qibla-bearing-display');
+        if (bearingDisplay) {
+          const dirLetter = (qiblaBearing >= 315 || qiblaBearing < 45) ? 'N'
+                           : (qiblaBearing < 135) ? 'E'
+                           : (qiblaBearing < 225) ? 'S' : 'W';
+          const angle = Math.round(qiblaBearing);
+          bearingDisplay.textContent = `${dirLetter} ${angle}°`;
+        }
         // Initialize arrow orientation (no rotation needed here, will update on device orientation events)
 
         // Fetch prayer times via Aladhan API
@@ -149,10 +134,23 @@
                 const time = timings[key];
                 const nameAr = prayerNames[key] || key;
                 const listItem = document.createElement('li');
+                listItem.setAttribute('data-prayer', key);
                 listItem.innerHTML = `<strong>${nameAr}:</strong> ${time}`;
                 prayerList.appendChild(listItem);
               }
             });
+            // Highlight next prayer
+            const next = getNextPrayerTime(timings);
+            if (next) {
+              const nextLi = prayerList.querySelector(`li[data-prayer="${next.name}"]`);
+              if (nextLi) {
+                nextLi.style.background = '#e0c97f';
+                nextLi.style.color = '#7c5c1e';
+                nextLi.style.borderRadius = '8px';
+                nextLi.style.fontWeight = 'bold';
+                nextLi.style.boxShadow = '0 2px 8px #e0c97f44';
+              }
+            }
           })
           .catch(err => {
             console.error('Prayer times fetch error:', err);
@@ -179,5 +177,103 @@
         // (Button remains hidden)
       }
     }
+
+    // --- Next Prayer Countdown ---
+    function getNextPrayerTime(timings) {
+      // Only consider Fajr, Dhuhr, Asr, Maghrib, Isha
+      const order = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
+      const now = new Date();
+      let nextPrayer = null;
+      let minDiff = Infinity;
+      order.forEach(key => {
+        if (timings[key]) {
+          // Parse time (HH:MM)
+          const [h, m] = timings[key].split(":");
+          const prayerDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+          let diff = (prayerDate - now) / 1000; // seconds
+          if (diff < -60) diff += 24*3600; // if already passed, add 24h
+          if (diff > 0 && diff < minDiff) {
+            minDiff = diff;
+            nextPrayer = { name: key, time: prayerDate };
+          }
+        }
+      });
+      return nextPrayer;
+    }
+
+    function updateCountdown(prayerName, prayerTime) {
+      const countdownDiv = document.getElementById('next-prayer-countdown');
+      if (!countdownDiv) return;
+      function pad(n) { return n < 10 ? '0'+n : n; }
+      function tick() {
+        const now = new Date();
+        let diff = Math.floor((prayerTime - now) / 1000);
+        if (diff < 0) diff += 24*3600;
+        const h = Math.floor(diff/3600), m = Math.floor((diff%3600)/60), s = diff%60;
+        const namesAr = { Fajr: 'الفجر', Dhuhr: 'الظهر', Asr: 'العصر', Maghrib: 'المغرب', Isha: 'العشاء' };
+        countdownDiv.innerHTML = `الصلاة القادمة: <b>${namesAr[prayerName]||prayerName}</b> بعد ${pad(h)}:${pad(m)}:${pad(s)}`;
+      }
+      tick();
+      if (window._prayerCountdownInterval) clearInterval(window._prayerCountdownInterval);
+      window._prayerCountdownInterval = setInterval(tick, 1000);
+    }
+
+    // --- Patch prayer times logic to add countdown ---
+    const origFetchPrayerTimes = window.fetch;
+    window.fetch = function(...args) {
+      return origFetchPrayerTimes.apply(this, args).then(res => {
+        // Patch only for Aladhan timings API
+        if (args[0] && args[0].toString().includes('aladhan.com/v1/timings')) {
+          res.clone().json().then(data => {
+            if (data && data.data && data.data.timings) {
+              const next = getNextPrayerTime(data.data.timings);
+              if (next) updateCountdown(next.name, next.time);
+            }
+          });
+        }
+        return res;
+      });
+    };
   }
+
+  // Sidebar loader and logic
+  async function loadSidebar() {
+    const resp = await fetch('components/sidebar.html');
+    const html = await resp.text();
+    const placeholder = document.getElementById('profile-sidebar-container');
+    if (placeholder) {
+      placeholder.insertAdjacentHTML('beforebegin', html);
+      // Sidebar logic after loading
+      const profileBtn = document.getElementById('profile-slider-btn');
+      var athkarSidebar = document.getElementById('profile-sidebar');
+      var athkarSidebarOpen = false;
+      const closeBtn = document.getElementById('close-profile-sidebar');
+      profileBtn.addEventListener('click', e => {
+        athkarSidebar.style.left = '0';
+        athkarSidebarOpen = true;
+        e.stopPropagation();
+      });
+      closeBtn.addEventListener('click', e => {
+        athkarSidebar.style.left = '-260px';
+        athkarSidebarOpen = false;
+        e.stopPropagation();
+      });
+      document.addEventListener('click', e => {
+        if (athkarSidebarOpen && !athkarSidebar.contains(e.target) && e.target !== profileBtn) {
+          athkarSidebar.style.left = '-260px';
+          athkarSidebarOpen = false;
+        }
+      });
+      athkarSidebar.addEventListener('click', e => e.stopPropagation());
+      // Settings link (placeholder)
+      const settingsLink = document.getElementById('sidebar-settings-link');
+      if (settingsLink) {
+        settingsLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          alert('صفحة الإعدادات ستتوفر قريبًا.');
+        });
+      }
+    }
+  }
+  loadSidebar();
 })();

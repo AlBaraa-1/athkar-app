@@ -25,13 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   incrementBtn.addEventListener('click', () => {
-    if (counter < target) {
+    if (target === Infinity || counter < target) {
       counter++;
       counterDisplay.textContent = counter;
       totalTasbeeh++;
       localStorage.setItem('totalTasbeeh', totalTasbeeh);
       updateTotalTasbeehDisplay();
-      if (counter === target) {
+      if (target !== Infinity && counter === target) {
         hideIncrementBtn();
       }
     }
@@ -49,6 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
       targetInput.style.display = '';
       targetInput.value = '';
       target = 1;
+    } else if (targetSelect.value === 'unlimited') {
+      targetInput.style.display = 'none';
+      target = Infinity;
+      showIncrementBtn();
     } else {
       targetInput.style.display = 'none';
       targetInput.value = targetSelect.value;
@@ -119,16 +123,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebar = document.getElementById('profile-sidebar');
   const closeSidebar = document.getElementById('close-profile-sidebar');
   let sidebarOpen = false;
-  profileBtn.onclick = function(e) {
+  profileBtn.addEventListener('click', function(e) {
     sidebar.style.left = '0';
     sidebarOpen = true;
     e.stopPropagation();
-  };
-  closeSidebar.onclick = function(e) {
+  });
+  closeSidebar.addEventListener('click', function(e) {
     sidebar.style.left = '-260px';
     sidebarOpen = false;
     e.stopPropagation();
-  };
+  });
   document.addEventListener('click', function(e) {
     if (sidebarOpen && !sidebar.contains(e.target) && e.target !== profileBtn) {
       sidebar.style.left = '-260px';
@@ -162,8 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
     darkToggleBtn.style.background = on ? '#7c5c1e' : '#e0c97f';
     darkOn = on;
   }
-  darkToggleBtn.onclick = function() {
+  darkToggleBtn.addEventListener('click', function(e) {
     setDarkMode(!darkOn);
-  };
+    e.stopPropagation();
+  });
   setDarkMode(false);
 });
